@@ -8,65 +8,88 @@
 
 using Img = Magick::Image;
 
-SymbolSlicer::Slicer::Slicer() {}
+SymbolSlicer::Slicer::Slicer(const Img &img) 
+    :img(std::move(img)),
+     startingConfidenceInterval(1.0),
+     endingConfidenceInterval(1.0) 
+{}
 
-std::vector<Img> SymbolSlicer::Slicer::slice(Img &img) const {
-    horizontalSlicing(img);
+std::vector<Img> SymbolSlicer::Slicer::slice() {
+    Rect r{0ul, 0ul, img.columns(), img.rows()};
+
+    //horizontalSlicing({0ul, img.rows() / 2, img.columns(), img.rows()});
+    makeSlice(Horizontal, r);
+    //horizontalSlicing({0ul, 0ul, img.rows(), img.columns()});
 
     std::vector<Img> symbols; 
 
+
+    img.write("../images/ans.jpg");
 
     return symbols;
 }
 
 // private
+//
 
-void SymbolSlicer::Slicer::horizontalSlicing(Img &img) const {
-    std::vector<double> fRow(img.rows());
-
-    for(auto i = 0ul; i < img.rows(); ++i) {
-        for(auto j = 0ul; j < img.columns(); ++j) {
-            auto color = img.pixelColor(j, i);
-            Magick::ColorGray grey(color);
-            fRow[i] += grey.shade();
-        }     
+void SymbolSlicer::Slicer::makeSlice(SliceDirection direction, Rect rect) {
+    if(direction == Vertical) {
+        rect = rect.coup();
     }
 
-    drawGreed(img, fRow);
-    //for(auto &x: fRow) {
-      //  std::cout << x << ' ';
-    //}
+    auto summaryBgShade{Magick::ColorGray(img.backgroundColor()).shade() * rect.x2};
 
-    //std::cout << "Max: " << *std::max_element(fRow.begin(), fRow.end()) << std::endl;
-    //std::cout << "Min: " << *std::min_element(fRow.begin(), fRow.end()) << std::endl;
+    /* На данный момент будет работать только для светлого фона.
+     * Подумать над темным фоном */
+    auto allowedStartingShade{summaryBgShade - startingConfidenceInterval}; 
+    auto allowedEndingShade{summaryBgShade - endingConfidenceInterval}; 
+
+    auto isPeak{false}; 
+
+    for(auto i = rect.y1; i < rect.y2; ++i) {
+        auto summaryShade{0.};
+
+        for(auto j = rect.x1; j < rect.x2; ++j) {
+            auto color = direction == Horizontal ? img.pixelColor(j, i) : img.pixelColor(i, j);
+            Magick::ColorGray grey(color);
+            summaryShade += grey.shade();
+        }     
+
+
+        if(!isPeak && summaryShade < allowedStartingShade) {
+            // начало текстового блока
+            std::cout << "was started" << std::endl;
+
+            if(direction == Horizontal) {
+                img.draw(Magick::DrawableLine(0, i, img.columns(), i)); 
+            } else {
+                img.draw(Magick::DrawableLine(i, 0, i, img.columns())); 
+            }
+            
+            isPeak = true;
+        } 
+
+        if(isPeak && summaryShade > allowedEndingShade) {
+            // конец блока
+            std::cout << "was ended" << std::endl;
+            
+            if(direction == Horizontal) {
+                img.draw(Magick::DrawableLine(0, i, img.columns(), i)); 
+            } else {
+                img.draw(Magick::DrawableLine(i, 0, i, img.columns())); 
+            }
+
+            isPeak = false;
+        }
+
+        /* Для прорисовки графика */
+        //img.pixelColor(summaryShade - 10, i, Magick::Color("red"));
+    }
 }
 
-void SymbolSlicer::Slicer::drawGreed(Img &img, const std::vector<double> &hSliceFunction) const {
-     const size_t delta = 2;
-     //double diff = (*std::max_element(hSliceFunction.begin(), hSliceFunction.end()) - 
-       //     *std::min_element(hSliceFunction.begin(), hSliceFunction.end())) / 3;
-    double diff = 30;
+// SymbolSlicer::Slicer::Rect 
+//
 
-    // std::cout << "Diff: " << diff << std::endl;
-    //
-
-    auto bgSum = Magick::ColorGray(img.backgroundColor()).shade() * img.columns();
-    std::cout << bgSum << std::endl;
-
-    for(auto i = delta; i < hSliceFunction.size() - delta; ++i) {
-        /*if(std::abs(hSliceFunction[i - delta] - hSliceFunction[i]) >= diff &&
-                std::abs(hSliceFunction[i + delta] - hSliceFunction[i] <= diff)) 
-        {
-            img.draw(Magick::DrawableLine(0, i, img.rows(), i)); 
-        }*/
-
-        if(
-                (std::abs(bgSum - hSliceFunction[i]) - std::abs(bgSum - hSliceFunction[i - delta])) >= diff
-        ) {
-            img.draw(Magick::DrawableLine(0, i, img.rows(), i)); 
-        }
-            
-
-        img.pixelColor(hSliceFunction[i] - 100, i, Magick::Color("red"));
-    } 
+SymbolSlicer::Slicer::Rect SymbolSlicer::Slicer::Rect::coup() {
+    return {y1, x1, y2, x2};
 }

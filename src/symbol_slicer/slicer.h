@@ -10,25 +10,34 @@ namespace SymbolSlicer {
 
     class Slicer {
 
+        enum SliceDirection{ Horizontal, Vertical };
+
+        struct Rect {
+            size_t x1, y1, x2, y2;
+
+            Rect coup();
+        };
+
         public:
-            Slicer();
+            Slicer(const Magick::Image &img);
 
             /* Режим картинку на отдельные символы 
              * Скорее всего будем возвращать объект класса Formula 
              */
-            std::vector<Magick::Image> slice(Magick::Image &img) const;
+            std::vector<Magick::Image> slice();
 
         private:
 
-            /* Режим картинку по горизонтали */
-            void horizontalSlicing(Magick::Image &img) const;
+            void makeSlice(SliceDirection direction, Rect rect);
 
-            /* Временная тестовая функция
-             * рисует на изображении сетку в тех местах, где должно 
-             * быть разбиение. Предполагает, что все символы одинакового размера и располложены
-             * в рядами 
-             */
-            void drawGreed(Magick::Image &img, const std::vector<double> &hSliceFunction) const;
+        private:
+
+            /* изображение, которое мы будим резать */
+            Magick::Image img;
+
+            double startingConfidenceInterval;
+            double endingConfidenceInterval;
+
 
     };
 

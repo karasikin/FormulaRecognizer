@@ -8,10 +8,10 @@ int main(int /*argc*/, char **argv) {
     Magick::InitializeMagick(argv[0]);
 
 
-    SymbolSlicer::Slicer s;
-    Magick::Image img("../images/test1.jpg");
-    s.slice(img);
+    Magick::Image img("../images/f_test.png");
+    SymbolSlicer::Slicer s(img);
+    s.slice();
 
     //img.type(Magick::GrayscaleType);
-    img.write("../images/ans.jpg");
+    //img.write("../images/ans.jpg");
 }
