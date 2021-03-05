@@ -87,9 +87,3 @@ void SymbolSlicer::Slicer::makeSlice(SliceDirection direction, Rect rect) {
     }
 }
 
-// SymbolSlicer::Slicer::Rect 
-//
-
-SymbolSlicer::Slicer::Rect SymbolSlicer::Slicer::Rect::coup() {
-    return {y1, x1, y2, x2};
-}

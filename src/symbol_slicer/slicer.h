@@ -6,17 +6,13 @@
 #include <vector>
 #include <Magick++.h>
 
+#include "rect.h"
+
 namespace SymbolSlicer {
 
     class Slicer {
 
         enum SliceDirection{ Horizontal, Vertical };
-
-        struct Rect {
-            size_t x1, y1, x2, y2;
-
-            Rect coup();
-        };
 
         public:
             Slicer(const Magick::Image &img);
@@ -28,6 +24,8 @@ namespace SymbolSlicer {
 
         private:
 
+            /* Делает разрезы по горизонтали или вертикали 
+             * заданной области */
             void makeSlice(SliceDirection direction, Rect rect);
 
         private:
