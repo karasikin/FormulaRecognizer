@@ -4,17 +4,16 @@
 #include <cmath>
 //#include <algorithm>
 
-#include "slicer.h"
+#include "formula.h"
 
 using Img = Magick::Image;
 
-SymbolSlicer::Slicer::Slicer(const Img &img) 
-    :img(std::move(img)),
-     startingConfidenceInterval(1.0),
+Segmenter::Formula::Formula(const Img &img) 
+    :img(std::move(img)), startingConfidenceInterval(1.0),
      endingConfidenceInterval(1.0) 
 {}
 
-std::vector<Img> SymbolSlicer::Slicer::slice() {
+std::vector<Img> Segmenter::Formula::slice() {
     Rect r{0ul, 0ul, img.columns(), img.rows()};
 
     //horizontalSlicing({0ul, img.rows() / 2, img.columns(), img.rows()});
@@ -32,7 +31,7 @@ std::vector<Img> SymbolSlicer::Slicer::slice() {
 // private
 //
 
-void SymbolSlicer::Slicer::makeSlice(SliceDirection direction, Rect rect) {
+void Segmenter::Formula::makeSlice(SliceDirection direction, Rect rect) {
     if(direction == Vertical) {
         rect = rect.coup();
     }

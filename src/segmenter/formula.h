@@ -1,21 +1,22 @@
-/* slicer.h */
+/* formula.h */
 
-#ifndef SLICER_H
-#define SLICER_H
+#ifndef FORMULA_H
+#define FORMULA_H
 
 #include <vector>
 #include <Magick++.h>
 
 #include "rect.h"
 
-namespace SymbolSlicer {
+namespace Segmenter {
 
-    class Slicer {
+    class Formula {
 
         enum SliceDirection{ Horizontal, Vertical };
 
         public:
-            Slicer(const Magick::Image &img);
+
+            Formula(const Magick::Image &img);
 
             /* Режим картинку на отдельные символы 
              * Скорее всего будем возвращать объект класса Formula 
@@ -36,9 +37,7 @@ namespace SymbolSlicer {
             double startingConfidenceInterval;
             double endingConfidenceInterval;
 
-
     };
-
 }
 
 #endif

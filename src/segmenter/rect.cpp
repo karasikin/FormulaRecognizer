@@ -2,6 +2,6 @@
 
 #include "rect.h"
 
-SymbolSlicer::Rect SymbolSlicer::Rect::coup() const {
+Segmenter::Rect Segmenter::Rect::coup() const {
     return {y1, x1, y2, x2};
 }

@@ -2,15 +2,15 @@
 
 #include <iostream> // для отладки
 
-#include "symbol_slicer/slicer.h"
+#include "segmenter/formula.h"
 
 int main(int /*argc*/, char **argv) {
     Magick::InitializeMagick(argv[0]);
 
 
     Magick::Image img("../images/f_test.png");
-    SymbolSlicer::Slicer s(img);
-    s.slice();
+    Segmenter::Formula formula(img);
+    formula.slice();
 
     //img.type(Magick::GrayscaleType);
     //img.write("../images/ans.jpg");

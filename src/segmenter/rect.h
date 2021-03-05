@@ -21,7 +21,7 @@
 
 #include <cstddef>
 
-namespace SymbolSlicer {
+namespace Segmenter {
 
     struct Rect {
         size_t x1, y1, x2, y2;
