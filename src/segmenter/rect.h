@@ -26,6 +26,8 @@ namespace Segmenter {
     struct Rect {
         size_t x1, y1, x2, y2;
 
+        bool operator==(const Rect &other);
+
         Rect coup() const;
     };
 

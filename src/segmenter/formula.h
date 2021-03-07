@@ -33,7 +33,7 @@ namespace Segmenter {
             void makeSlice(SliceDirection direction);
 
             /* !!!! Отладочная функция рисует сегменты на исходном мзображении */
-            void drawSegments();
+            void drawSegment();
 
         private:
 

@@ -20,8 +20,30 @@ Segmenter::Formula::Formula(const std::shared_ptr<Magick::Image> &img,
 {}
 
 void Segmenter::Formula::slice() {
+    
+    std::cout << "Slice: ";
+
     makeSlice(direction);
-    drawSegments();
+        drawSegment();
+
+    if(segments.size() == 1 && segments.front()->getRectangle() == rect) {
+        // Потомок единственный и он такой же как отец
+        std::cout << "Потомок такойже return" << std::endl;
+        drawSegment();
+        return;
+    } 
+
+    if(segments.size() == 0) {
+        // Потомков нет
+        std::cout << "Потомков нет return" << std::endl;
+        return;
+    }
+
+    // Потомки есть
+    std::cout << "Потомки есть обработка" << std::endl;
+    for(auto &segment: segments) {
+        segment->slice();
+    }
 }
 
 Segmenter::Rect Segmenter::Formula::getRectangle() const {
@@ -36,7 +58,7 @@ void Segmenter::Formula::makeSlice(SliceDirection direction) {
         rect = rect.coup();
     }
 
-    auto summaryBgShade{Magick::ColorGray(img->backgroundColor()).shade() * rect.x2};
+    auto summaryBgShade{Magick::ColorGray(img->backgroundColor()).shade() * rect.x2 - rect.x1};
 
     /* На данный момент будет работать только для светлого фона.
      * Подумать над темным фоном */
@@ -81,19 +103,19 @@ void Segmenter::Formula::makeSlice(SliceDirection direction) {
     }
 }
 
-void Segmenter::Formula::drawSegments() {
-    std::random_device rd;
+void Segmenter::Formula::drawSegment() {
+    /*std::random_device rd;
     std::mt19937 gen{rd()};
     std::uniform_real_distribution udd(0.1, 0.99);
 
     Magick::ColorRGB color(udd(gen), udd(gen), udd(gen));
+    */
+
+    Magick::Color color("red");
 
     img->strokeColor(color);
     img->fillColor(Magick::Color("#ffffff00"));
 
-    for(auto &formula: segments) {
-        auto rect = formula->getRectangle();
-        img->draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
-    }
+    img->draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
 }
 
