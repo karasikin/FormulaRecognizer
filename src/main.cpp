@@ -8,10 +8,9 @@ int main(int /*argc*/, char **argv) {
     Magick::InitializeMagick(argv[0]);
 
 
-    Magick::Image img("../images/f_test.png");
-    Segmenter::Formula formula(img);
+    auto img = std::make_shared<Magick::Image>("../images/f_test.png");
+    Segmenter::Formula formula(img, {0ul, 0ul, img->columns(), img->rows()}, Segmenter::Formula::Vertical);
     formula.slice();
 
-    //img.type(Magick::GrayscaleType);
-    //img.write("../images/ans.jpg");
+    img->write("../images/ans.jpg");
 }
