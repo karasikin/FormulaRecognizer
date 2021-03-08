@@ -32,8 +32,11 @@ int main(int /*argc*/, char **argv) {
     img->type(Magick::ImageType::BilevelType);
 
     Segmenter::Formula formula(img, {0ul, 0ul, img->columns(), img->rows()}, 
-            Segmenter::Formula::Vertical);
+            Segmenter::Formula::Horizontal);
+    //Segmenter::Formula formula(img, {92ul, 165ul, 206ul, 199ul}, 
+      //      Segmenter::Formula::Horizontal);
     formula.slice();
+    //formula.pixelMark();
 
     img->write("../images/ans.jpg");
 }

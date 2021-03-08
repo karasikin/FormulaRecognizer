@@ -24,6 +24,10 @@ namespace Segmenter {
              */
             void slice();
 
+
+            /* Пробую другой способ. Идея в построении компонент связанности пикселей */
+            void pixelMark();
+
             Rect getRectangle() const;
 
         private:
@@ -31,6 +35,10 @@ namespace Segmenter {
             /* Делает разрезы по горизонтали или вертикали 
              * заданной области */
             void makeSlice(SliceDirection direction);
+
+            /* Такой же принцип разреза, но с учетом бинаризации 
+             * с целью эксперимента сделан */
+            void makeSliceAfterBinaryzation(SliceDirection direction);
 
             /* !!!! Отладочная функция рисует сегменты на исходном мзображении */
             void drawSegment();
