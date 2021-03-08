@@ -17,7 +17,7 @@ void Segmenter::Formula::slice() {
 
     /* Добавляем сегмент в нарезку 
      * нужно для наглядной отладки */
-    makeSegmentImage(Magick::Color{"red"}, Magick::Color{"green"});
+    //makeSegmentImage(Magick::Color{"red"}, Magick::Color{"green"});
 
     // Потомков нет
     if(segments.size() == 0) {
@@ -31,11 +31,22 @@ void Segmenter::Formula::slice() {
     for(auto &segment: segments) {
         segment->slice();
     }
-    
 }
 
-Segmenter::Rect Segmenter::Formula::getRectangle() const {
+void Segmenter::Formula::postorder(std::function<void(Formula *)> f) {
+    f(this); 
+
+    for(auto &x: segments) {
+        x->postorder(f);
+    }
+}
+
+const Segmenter::Rect &Segmenter::Formula::getRectangle() const {
     return rect;
+}
+
+bool Segmenter::Formula::isLeaf() const {
+    return segments.size() == 0;
 }
 
 // private

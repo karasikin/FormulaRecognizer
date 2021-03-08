@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 #include <Magick++.h>
 
 #include "rect.h"
@@ -24,7 +25,13 @@ namespace Segmenter {
              */
             void slice();
 
-            Rect getRectangle() const;
+            /* По-идее функция выполняется для каждого узла слева в порядке postorder.
+             * В качестве аргумента functional-объекта выступает текущий узел
+             */
+            void postorder(std::function<void(Formula *)> f); 
+
+            const Rect &getRectangle() const;
+            bool isLeaf() const;
 
         private:
 
