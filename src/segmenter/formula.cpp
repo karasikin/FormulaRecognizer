@@ -1,90 +1,38 @@
 /* slicer.cpp */
 
 #include <iostream>  // Для отладки
-#include <cmath>
-//#include <algorithm>
-#include <random>
 
 #include "formula.h"
-
-using Img = Magick::Image;
 
 Segmenter::Formula::Formula(const std::shared_ptr<Magick::Image> &img, 
         const Rect &rect, 
         SliceDirection direction) 
     :img(img), 
      rect(rect),
-     direction(direction),
-     startingConfidenceInterval(1.0),
-     endingConfidenceInterval(1.0) 
+     direction(direction)
 {}
 
 void Segmenter::Formula::slice() {
-    
-    std::cout << "Slice: ";
+    makeSlice(direction);
 
-    //makeSlice(direction);
-    makeSliceAfterBinaryzation(direction);
-    /*    drawSegment();
-        for(auto &segment: segments) {
-            segment->drawSegment();
-        }
-    */
+    /* Добавляем сегмент в нарезку 
+     * нужно для наглядной отладки */
+    makeSegmentImage(Magick::Color{"red"}, Magick::Color{"green"});
 
-    /* Вывод каждого элемента в отдельный файл */
-    /*
-    Magick::Image newImg(*img);
-    Magick::Color color("red");
-    newImg.strokeColor(color);
-    newImg.fillColor(Magick::Color("#ffffff00"));
-    newImg.draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
-    newImg.strokeColor("green");
-    for(auto &x: this->segments) {
-        auto rect = x->getRectangle();
-        newImg.draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
-    }
-    newImg.write(std::string("../images/ansset/img") 
-            + std::to_string(rect.x1) 
-            + std::string("x") 
-            + std::to_string(rect.y1)
-            + std::string("x") 
-            + std::to_string(rect.x2) 
-            + std::string("x") 
-            + std::to_string( rect.y2) 
-            + std::string(".png"));
-    */
-
-    if(segments.size() == 1 && segments.front()->getRectangle() == rect) {
-        // Потомок единственный и он такой же как отец
-        std::cout << "Потомок такойже return" << std::endl;
-        drawSegment();
-        return;
-    } 
-
+    // Потомков нет
     if(segments.size() == 0) {
-        // Потомков нет
-        std::cout << "Потомков нет return" << std::endl;
-        drawSegment();
+        /* рисуем сегмент, для отладки.
+         * Нужно будет убрать */
+        drawSegment(Magick::Color{"blue"});
         return;
     }
 
     // Потомки есть
-    std::cout << "Потомки есть обработка" << std::endl;
     for(auto &segment: segments) {
         segment->slice();
     }
     
 }
-
-void Segmenter::Formula::pixelMark() {
-    /* code */ 
-    for(auto i = 0ul; i < img->rows(); ++i) {
-        for(auto j = 0ul; j < img->columns(); ++j) {
-
-        }
-    }
-}
-
 
 Segmenter::Rect Segmenter::Formula::getRectangle() const {
     return rect;
@@ -94,65 +42,9 @@ Segmenter::Rect Segmenter::Formula::getRectangle() const {
 //
 
 void Segmenter::Formula::makeSlice(SliceDirection direction) {
-    if(direction == Vertical) {
-        rect = rect.coup();
-    }
-
-    auto summaryBgShade{Magick::ColorGray(img->backgroundColor()).shade() * rect.x2 - rect.x1};
-
-    /* На данный момент будет работать только для светлого фона.
-     * Подумать над темным фоном */
-    auto allowedStartingShade{summaryBgShade - startingConfidenceInterval}; 
-    auto allowedEndingShade{summaryBgShade - endingConfidenceInterval}; 
-
-    auto isPeak{false}; 
-
-    size_t xStart{};
-    size_t yStart{};
-
-    for(auto i = rect.y1; i < rect.y2; ++i) {
-        auto summaryShade{0.};
-
-        for(auto j = rect.x1; j < rect.x2; ++j) {
-            auto color = direction == Horizontal ? img->pixelColor(j, i) : img->pixelColor(i, j);
-            Magick::ColorGray grey(color);
-            summaryShade += grey.shade();
-        }     
-
-        std::cout << summaryShade << ' ';
-
-        // начало текстового блока
-        if(!isPeak && summaryShade < allowedStartingShade) {
-            xStart = rect.x1;
-            yStart = i;
-            
-            isPeak = true;
-        } 
-
-        // конец блока
-        if(isPeak && summaryShade > allowedEndingShade) {
-            Rect segmentRect{xStart, yStart, rect.x2, i};
-            if(direction == Horizontal) {
-                auto segment = std::make_unique<Formula>(img, segmentRect, Vertical);
-                segments.push_back(std::move(segment));
-            } else {
-                auto segment = std::make_unique<Formula>(img, segmentRect.coup(), Horizontal);
-                segments.push_back(std::move(segment));
-            }
-
-            isPeak = false;
-        }
-    }
-}
-
-void Segmenter::Formula::makeSliceAfterBinaryzation(SliceDirection direction) {
     auto rect = direction == Horizontal ? this->rect : this->rect.coup();
 
-    /* На данный момент будет работать только для светлого фона.
-     * Подумать над темным фоном */
-
     auto isPeak{false}; 
-
     size_t xStart{};
     size_t yStart{};
 
@@ -168,7 +60,6 @@ void Segmenter::Formula::makeSliceAfterBinaryzation(SliceDirection direction) {
 
         // начало текстового блока
         if(!isPeak && summaryShade > 0) {
-            std::cout << "start" << std::endl;
             xStart = rect.x1;
             yStart = i;
             
@@ -177,50 +68,56 @@ void Segmenter::Formula::makeSliceAfterBinaryzation(SliceDirection direction) {
 
         // конец блока
         if(isPeak && summaryShade <= 0) {
-            std::cout << "end" << std::endl;
-            Rect segmentRect{xStart, yStart, rect.x2, i};
-            if(direction == Horizontal) {
-                auto segment = std::make_unique<Formula>(img, segmentRect, Vertical);
-                segments.push_back(std::move(segment));
-            } else {
-                auto segment = std::make_unique<Formula>(img, segmentRect.coup(), Horizontal);
-                segments.push_back(std::move(segment));
-            }
+            addSegment(Rect{xStart, yStart, rect.x2, i});
 
             isPeak = false;
         }
     }
 
-    /* если конец, но все еще пик, добавим пирколюху
-     * НО надо чекать могут ыбыть пустые штуки ВНЕЗАПНО
-     * Проверять на есть ли уже добавленные темы???
-     */
+    // Защита, нужна чтобы добавлять последний элемент, уже образанного блока 
     if(isPeak && yStart != rect.y1) {
-        std::cout << "new end" << std::endl;
-        Rect segmentRect{xStart, yStart, rect.x2, rect.y2};
-        if(direction == Horizontal) {
-            auto segment = std::make_unique<Formula>(img, segmentRect, Vertical);
-            segments.push_back(std::move(segment));
-        } else {
-            auto segment = std::make_unique<Formula>(img, segmentRect.coup(), Horizontal);
-            segments.push_back(std::move(segment));
-        }
+        addSegment(Rect{xStart, yStart, rect.x2, rect.y2});
     }
 }
 
-void Segmenter::Formula::drawSegment() {
-    /*std::random_device rd;
-    std::mt19937 gen{rd()};
-    std::uniform_real_distribution udd(0.1, 0.99);
+void Segmenter::Formula::addSegment(const Rect &rect) {
+    if(direction == Horizontal) {
+        auto segment = std::make_unique<Formula>(img, rect, Vertical);
+        segments.push_back(std::move(segment));
+    } else {
+        auto segment = std::make_unique<Formula>(img, rect.coup(), Horizontal);
+        segments.push_back(std::move(segment));
+    }
+}
 
-    Magick::ColorRGB color(udd(gen), udd(gen), udd(gen));
-    */
-
-    Magick::Color color("red");
-
+void Segmenter::Formula::drawSegment(const Magick::Color &color) {
     img->strokeColor(color);
-    img->fillColor(Magick::Color("#ffffff00"));
+    img->fillColor(Magick::Color("#ffffff00"));  // Прозрачный
 
     img->draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
 }
 
+void Segmenter::Formula::makeSegmentImage(const Magick::Color &outerColor, const Magick::Color &interiorColor) {
+    Magick::Image segmentImg(*img);
+
+    segmentImg.fillColor(Magick::Color("#ffffff00")); // Прозрачный
+
+    segmentImg.strokeColor(outerColor);
+    segmentImg.draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
+
+    segmentImg.strokeColor(interiorColor);
+    for(auto &x: this->segments) {
+        auto rect = x->getRectangle();
+        segmentImg.draw(Magick::DrawableRectangle(rect.x1, rect.y1, rect.x2 - 1, rect.y2 - 1));
+    }
+
+    segmentImg.write(std::string("../images/ansset/img") 
+            + std::to_string(rect.x1) 
+            + std::string("x") 
+            + std::to_string(rect.y1)
+            + std::string("x") 
+            + std::to_string(rect.x2) 
+            + std::string("x") 
+            + std::to_string( rect.y2) 
+            + std::string(".png"));
+}

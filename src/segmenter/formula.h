@@ -24,10 +24,6 @@ namespace Segmenter {
              */
             void slice();
 
-
-            /* Пробую другой способ. Идея в построении компонент связанности пикселей */
-            void pixelMark();
-
             Rect getRectangle() const;
 
         private:
@@ -36,12 +32,15 @@ namespace Segmenter {
              * заданной области */
             void makeSlice(SliceDirection direction);
 
-            /* Такой же принцип разреза, но с учетом бинаризации 
-             * с целью эксперимента сделан */
-            void makeSliceAfterBinaryzation(SliceDirection direction);
+            /* Добавляем сегмент в текущую  формулу */
+            void addSegment(const Rect &rect);
 
-            /* !!!! Отладочная функция рисует сегменты на исходном мзображении */
-            void drawSegment();
+
+            /* Отладочная функция рисует сегменты на исходном мзображении */
+            void drawSegment(const Magick::Color &color);
+
+            /* Отладочная функция. Создает изображение для каждого уровня вложенности сегментов */
+            void makeSegmentImage(const Magick::Color &outerColor, const Magick::Color &interiorColor);
 
         private:
 
@@ -56,10 +55,6 @@ namespace Segmenter {
 
             /* Подформулы */
             std::vector<std::unique_ptr<Formula>> segments;
-
-            double startingConfidenceInterval;
-            double endingConfidenceInterval;
-
     };
 }
 
