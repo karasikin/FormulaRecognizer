@@ -12,6 +12,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -Wall")
 
 set(SRC_LIST 
     src/main.cpp
+    src/recognizer.h
+    src/recognizer.cpp
     src/segmenter/formula.cpp
     src/segmenter/rect.cpp
 )
