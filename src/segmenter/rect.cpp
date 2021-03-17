@@ -1,6 +1,6 @@
 /* rect.cpp */
 
-#include "rect.h"
+#include "segmenter/rect.h"
 
 bool Segmenter::Rect::operator==(const Rect &other) {
     return x1 == other.x1 
