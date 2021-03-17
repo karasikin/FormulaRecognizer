@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.19) 
-project(formula_recognizer)
+project(dataset)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -Wall")
@@ -7,6 +7,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++17 -Wall")
 set(SRC_LIST 
     src/main.cpp
     src/datasetbuilder.cpp
+    ../src/segmenter/formula.cpp
+    ../src/segmenter/rect.cpp
 )
 
 include_directories(../include)

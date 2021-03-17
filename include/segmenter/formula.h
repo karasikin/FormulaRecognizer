@@ -38,15 +38,10 @@ namespace Segmenter {
              */
             void postorder(std::function<void(Formula *)> f); 
 
-            /* Преобразуем формулу в std::vector<double> 
-             * Работает корректно, кодда размер получаемой матрицы МЕНЬШЕ,
-             * чем размер исходного изображения */
-            std::vector<double> toVectorWithCompression(size_t sideSize) const;
-
-            /* Преобразуем формулу в std::vector<double> 
-             * Работает корректно, кодда размер получаемой матрицы БОЛЬШЕ,
-             * чем размер исходного изображения */
-            std::vector<double> toVectorWithStretch(size_t sideSize) const;
+            /* Возвращает вектор размера SLICE_SIDE_SIZE * SLICE_SIDE_SIZE,
+             * который соответствует сегменту
+             */
+            std::unique_ptr<std::vector<double>> toVector(size_t sideSize) const;
 
             const Rect &getRectangle() const;
             bool isLeaf() const;
@@ -59,6 +54,16 @@ namespace Segmenter {
 
             /* Добавляем сегмент в текущую  формулу */
             void addSegment(const Rect &rect);
+
+            /* Преобразуем формулу в std::vector<double> 
+             * Работает корректно, кодда размер получаемой матрицы МЕНЬШЕ,
+             * чем размер исходного изображения */
+            std::unique_ptr<std::vector<double>> toVectorWithCompression(size_t sideSize) const;
+
+            /* Преобразуем формулу в std::vector<double> 
+             * Работает корректно, кодда размер получаемой матрицы БОЛЬШЕ,
+             * чем размер исходного изображения */
+            std::unique_ptr<std::vector<double>> toVectorWithStretch(size_t sideSize) const;
 
             /* Отладочная функция рисует сегменты на исходном мзображении */
             void drawSegment(const Magick::Color &color);

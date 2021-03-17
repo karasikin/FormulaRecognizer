@@ -40,21 +40,10 @@ void Segmenter::Formula::slice() {
 
 std::string Segmenter::Formula::toLaTeX() const {
     if(isLeaf()) {
-        std::vector<double> sliceVector;
 
-        std::string prefix{"../images/ansset/img"};
+        auto sliceVector = toVector(SLICE_SIDE_SIZE);
 
-        if((rect.x2 - rect.x1) > SLICE_SIDE_SIZE && (rect.y2 - rect.y1) > SLICE_SIDE_SIZE) {
-            sliceVector = toVectorWithCompression(SLICE_SIDE_SIZE);
-            prefix+= "_compression_";
-        } else {
-            sliceVector = toVectorWithStretch(SLICE_SIDE_SIZE);
-            prefix += "_stretched_";
-        }
-
-        // Для отладки!
-        //makeImageFromVector(sliceVector, "../images/ansset/img"); 
-        makeImageFromVector(sliceVector, prefix); 
+        makeImageFromVector(*sliceVector, "../images/ansset/img"); 
 
         /// Получаем строку
     }
@@ -74,45 +63,12 @@ void Segmenter::Formula::postorder(std::function<void(Formula *)> f) {
     }
 }
 
-std::vector<double> Segmenter::Formula::toVectorWithCompression(size_t sideSize) const {
-    std::vector<double> sliceVector(sideSize * sideSize); 
-
-    auto xk = (rect.x2 - rect.x1) / double(sideSize);
-    auto yk = (rect.y2 - rect.y1) / double(sideSize);
-
-    // Если изображение сжимается 
-    for(auto i = rect.y1; i < rect.y2; ++i) {
-        for(auto j = rect.x1; j < rect.x2; ++j) {
-            auto color = Magick::ColorGray{grayImg->pixelColor(j, i)};
-
-            auto _j = int((j - rect.x1) / xk);
-            auto _i = int((i - rect.y1) / yk);
-
-            sliceVector[_i * sideSize + _j] = color.shade();
+std::unique_ptr<std::vector<double>> Segmenter::Formula::toVector(size_t sideSize) const {
+        if((rect.x2 - rect.x1) > SLICE_SIDE_SIZE && (rect.y2 - rect.y1) > SLICE_SIDE_SIZE) {
+            return toVectorWithCompression(SLICE_SIDE_SIZE);
+        } else {
+            return toVectorWithStretch(SLICE_SIDE_SIZE);
         }
-    }
-    
-    return sliceVector;
-}
-
-std::vector<double> Segmenter::Formula::toVectorWithStretch(size_t sideSize) const {
-    std::vector<double> sliceVector(sideSize * sideSize);
-
-    auto xk = (rect.x2 - rect.x1) / double(sideSize);
-    auto yk = (rect.y2 - rect.y1) / double(sideSize);
-
-    for(auto i = 0ul; i < sideSize; ++i) {
-        for(auto j = 0ul; j < sideSize; ++j) {
-            auto _j = int(j * xk) + rect.x1;
-            auto _i = int(i * yk) + rect.y1;
-
-            auto color = Magick::ColorGray(grayImg->pixelColor(_j, _i));
-
-            sliceVector[i * sideSize + j] = color.shade();
-        }
-    }
-
-    return sliceVector;
 }
 
 const Segmenter::Rect &Segmenter::Formula::getRectangle() const {
@@ -173,6 +129,47 @@ void Segmenter::Formula::addSegment(const Rect &rect) {
         auto segment = std::make_unique<Formula>(grayImg, monoImg, rect.coup(), Horizontal);
         segments.push_back(std::move(segment));
     }
+}
+
+std::unique_ptr<std::vector<double>> Segmenter::Formula::toVectorWithCompression(size_t sideSize) const {
+    auto sliceVector = std::make_unique<std::vector<double>>(sideSize * sideSize); 
+
+    auto xk = (rect.x2 - rect.x1) / double(sideSize);
+    auto yk = (rect.y2 - rect.y1) / double(sideSize);
+
+    // Если изображение сжимается 
+    for(auto i = rect.y1; i < rect.y2; ++i) {
+        for(auto j = rect.x1; j < rect.x2; ++j) {
+            auto color = Magick::ColorGray{grayImg->pixelColor(j, i)};
+
+            auto _j = int((j - rect.x1) / xk);
+            auto _i = int((i - rect.y1) / yk);
+
+            (*sliceVector)[_i * sideSize + _j] = color.shade();
+        }
+    }
+    
+    return sliceVector;
+}
+
+std::unique_ptr<std::vector<double>> Segmenter::Formula::toVectorWithStretch(size_t sideSize) const {
+    auto sliceVector = std::make_unique<std::vector<double>>(sideSize * sideSize);
+
+    auto xk = (rect.x2 - rect.x1) / double(sideSize);
+    auto yk = (rect.y2 - rect.y1) / double(sideSize);
+
+    for(auto i = 0ul; i < sideSize; ++i) {
+        for(auto j = 0ul; j < sideSize; ++j) {
+            auto _j = int(j * xk) + rect.x1;
+            auto _i = int(i * yk) + rect.y1;
+
+            auto color = Magick::ColorGray(grayImg->pixelColor(_j, _i));
+
+            (*sliceVector)[i * sideSize + j] = color.shade();
+        }
+    }
+
+    return sliceVector;
 }
 
 void Segmenter::Formula::drawSegment(const Magick::Color &color) {
