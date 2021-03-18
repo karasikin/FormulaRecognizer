@@ -20,7 +20,8 @@
 DatasetBuilder::DatasetBuilder(QWidget *parent) 
     :QWidget(parent),
      COLOR_COUNT(256),
-     imageData()
+     imageData(),
+     datasetData()
 {
     datasetViewer = new ImageViewer;
     datasetLineEdit = new QLineEdit;
@@ -89,6 +90,8 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     QObject::connect(dataPrevBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataPrev);
 
     QObject::connect(datasetLoadBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetLoad);
+    QObject::connect(datasetNextBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetNext);
+    QObject::connect(datasetPrevBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetPrev);
 }
 
 void DatasetBuilder::onDataLineEdit() {
@@ -111,7 +114,7 @@ void DatasetBuilder::onDataLoad() {
     extractData(fileName);
 
     if(!imageData.empty()) {
-        showData(++imageData);
+        showData(++imageData, dataViewer, dataLineEdit);
         if(!imageData.isLast()) {
             dataNextBtn->setEnabled(true);
         }
@@ -125,7 +128,7 @@ void DatasetBuilder::onDataAdd() {
 }
 
 void DatasetBuilder::onDataNext() {
-    showData(++imageData);
+    showData(++imageData, dataViewer, dataLineEdit);
 
     if(!imageData.isFirst()) {
         dataPrevBtn->setEnabled(true);
@@ -137,7 +140,7 @@ void DatasetBuilder::onDataNext() {
 }
 
 void DatasetBuilder::onDataPrev() {
-    showData(--imageData);
+    showData(--imageData, dataViewer, dataLineEdit);
 
     if(!imageData.isLast()) {
         dataNextBtn->setEnabled(true);
@@ -155,12 +158,44 @@ void DatasetBuilder::onDatasetLoad() {
         return;
     }
 
-    //datasetFile.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
+    datasetData.readFromFile(fileName); 
 
+    datasetNextBtn->setEnabled(false);
+    datasetPrevBtn->setEnabled(false);
 
+    if(!datasetData.empty()) {
+        showData(++datasetData, datasetViewer, datasetLineEdit); 
+        if(!datasetData.isLast()) {
+            datasetNextBtn->setEnabled(true);
+        }
+    }
 }
 
-void DatasetBuilder::showData(const Dataset &data) {
+void DatasetBuilder::onDatasetNext() {
+    showData(++datasetData, datasetViewer, datasetLineEdit);
+
+    if(datasetData.isLast()) {
+        datasetNextBtn->setEnabled(false);
+    }
+
+    if(!datasetData.isFirst()) {
+        datasetPrevBtn->setEnabled(true);
+    }
+}
+
+void DatasetBuilder::onDatasetPrev() {
+    showData(--datasetData, datasetViewer, datasetLineEdit);
+
+    if(datasetData.isFirst()) {
+        datasetPrevBtn->setEnabled(false);
+    }
+
+    if(!datasetData.isLast()) {
+        datasetNextBtn->setEnabled(true);
+    }
+}
+
+void DatasetBuilder::showData(const Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit) {
     auto size = data.currentSetSize();                  // Размер вестора 
     auto sideSize = (unsigned int)std::sqrt(size);      // Размер стороны изображения 
     auto img = std::make_unique<QImage>(sideSize, sideSize, QImage::Format_Grayscale16); 
@@ -171,10 +206,10 @@ void DatasetBuilder::showData(const Dataset &data) {
         img->setPixelColor({int(i % sideSize), int(i / sideSize)}, QColor(color, color, color));
     }
 
-    dataViewer->setImage(std::move(img));
-    dataViewer->update(); 
+    imgViewer->setImage(std::move(img));
+    imgViewer->update(); 
 
-    dataLineEdit->setText(QString::number(data.getValue()));
+    lineEdit->setText(QString::number(data.getValue()));
 }
 
 void DatasetBuilder::extractData(const std::string &fileName) {

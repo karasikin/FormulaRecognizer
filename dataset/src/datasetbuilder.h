@@ -37,17 +37,18 @@ class DatasetBuilder : public QWidget {
         void onDataPrev();
 
         void onDatasetLoad();
+        void onDatasetNext();
+        void onDatasetPrev();
 
     private:
 
-        void showData(const Dataset &data);
+        void showData(const Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit);
         void extractData(const std::string &fileName);
 
     private:
 
         Dataset imageData;
-        //Dataset datasetData;
-
+        Dataset datasetData;
 
         /* Элементы интерфейса */
         ImageViewer *datasetViewer;
