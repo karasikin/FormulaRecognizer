@@ -26,13 +26,17 @@ class DatasetBuilder : public QWidget {
         const unsigned int COLOR_COUNT; 
 
         DatasetBuilder(QWidget *parent = nullptr);
+        ~DatasetBuilder();
 
     private slots:
 
         void onDataLineEdit();
         void onDataLoad();
+        void onDataAdd();
         void onDataNext();
         void onDataPrev();
+
+        void onDatasetLoad();
 
     private:
 
@@ -41,7 +45,8 @@ class DatasetBuilder : public QWidget {
 
     private:
 
-        //std::fstream datasetFile;
+        std::fstream datasetFile;
+        Data datasetItem;
 
         std::vector<Data> data;
         int currentData;

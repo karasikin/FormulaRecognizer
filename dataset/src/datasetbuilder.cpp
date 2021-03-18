@@ -20,6 +20,8 @@
 DatasetBuilder::DatasetBuilder(QWidget *parent) 
     :QWidget(parent),
      COLOR_COUNT(256),
+     datasetFile(),
+     datasetItem(),
      data(),
      currentData(-1)
 {
@@ -36,6 +38,8 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     dataAddBtn = new QPushButton("Add");
     dataPrevBtn = new QPushButton("<");
     dataNextBtn = new QPushButton(">");
+
+    datasetViewer->setMinimumWidth(100);  // ?
 
     dataViewer->setMinimumWidth(100); // ?
     dataNextBtn->setEnabled(false);
@@ -83,8 +87,17 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
 
     QObject::connect(dataLineEdit, &QLineEdit::textChanged, this, &DatasetBuilder::onDataLineEdit);
     QObject::connect(dataLoadBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataLoad);
+    QObject::connect(dataAddBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataAdd);
     QObject::connect(dataNextBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataNext);
     QObject::connect(dataPrevBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataPrev);
+
+    QObject::connect(datasetLoadBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetLoad);
+}
+
+DatasetBuilder::~DatasetBuilder() {
+    if(datasetFile.is_open()) {
+        datasetFile.close();
+    }
 }
 
 
@@ -95,9 +108,9 @@ void DatasetBuilder::onDataLineEdit() {
 }
 
 void DatasetBuilder::onDataLoad() {
-    auto fileName = QFileDialog::getOpenFileName(this, "Open image", ".", "Images (*.png *.jpg)");
+    auto fileName = QFileDialog::getOpenFileName(this, "Open image", ".", "Images (*.png *.jpg)").toStdString();
 
-    if(fileName.isEmpty()) {
+    if(fileName.empty()) {
         return;
     }
 
@@ -105,7 +118,7 @@ void DatasetBuilder::onDataLoad() {
     dataNextBtn->setEnabled(false);
     dataPrevBtn->setEnabled(false);
 
-    extractData(fileName.toStdString());
+    extractData(fileName);
 
     if(!data.empty()) {
         currentData = 0;
@@ -115,6 +128,10 @@ void DatasetBuilder::onDataLoad() {
         currentData = -1;
     }
     
+}
+
+void DatasetBuilder::onDataAdd() {
+
 }
 
 void DatasetBuilder::onDataNext() {
@@ -139,6 +156,18 @@ void DatasetBuilder::onDataPrev() {
     if(currentData == 0) {
         dataPrevBtn->setEnabled(false);
     }
+}
+
+void DatasetBuilder::onDatasetLoad() {
+    auto fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Datasets (*.dst)").toStdString(); 
+
+    if(fileName.empty()) {
+        return;
+    }
+
+    datasetFile.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
+
+
 }
 
 void DatasetBuilder::showData(const Data &data) {
