@@ -6,6 +6,8 @@
 #include <vector>
 #include <memory>
 
+std::ostream &operator>>(std::ostream &out, const std::vector<double> &vector);
+
 class Dataset {
 
     public: struct Data {
@@ -33,6 +35,9 @@ class Dataset {
 
         bool isFirst() const;
         bool isLast() const;
+
+        bool writeToFile(const std::string &fileName) const;
+        bool readFromFile(const std::string &fileName);
 
     private:
         

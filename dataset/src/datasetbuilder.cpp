@@ -119,7 +119,9 @@ void DatasetBuilder::onDataLoad() {
 }
 
 void DatasetBuilder::onDataAdd() {
-
+    /*imageData.writeToFile("file.dst");
+    imageData.readFromFile("file.dst");
+    showData(++imageData);*/
 }
 
 void DatasetBuilder::onDataNext() {
