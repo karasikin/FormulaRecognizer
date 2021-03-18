@@ -11,6 +11,7 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class ImageViewer;
 
 class DatasetBuilder : public QWidget {
     Q_OBJECT
@@ -22,26 +23,38 @@ class DatasetBuilder : public QWidget {
 
     public:
 
+        const unsigned int COLOR_COUNT; 
+
         DatasetBuilder(QWidget *parent = nullptr);
 
     private slots:
 
+        void onDataLineEdit();
         void onDataLoad();
+        void onDataNext();
+        void onDataPrev();
 
     private:
 
-        std::fstream datasetFile;
+        void showData(const Data &data);
+        void extractData(const std::string &fileName);
+
+    private:
+
+        //std::fstream datasetFile;
 
         std::vector<Data> data;
+        int currentData;
 
-        QLabel *datasetImg;
+        /* Элементы интерфейса */
+        ImageViewer *datasetViewer;
         QLineEdit *datasetLineEdit;
         QPushButton *datasetLoadBtn;
         QPushButton *datasetDeleteBtn;
         QPushButton *datasetNextBtn;
         QPushButton *datasetPrevBtn;
 
-        QLabel *dataImg;
+        ImageViewer *dataViewer;
         QLineEdit *dataLineEdit;
         QPushButton *dataLoadBtn;
         QPushButton *dataAddBtn;
