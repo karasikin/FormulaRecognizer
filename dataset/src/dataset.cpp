@@ -4,39 +4,52 @@
 
 Dataset::Dataset() 
     :sets(),
-     currentSet(-1)
+     currentSetIndex(-1)
 {}
 
-std::vector<double> &Dataset::operator[](size_t index) const {
-    return (*sets[index].data);
+double &Dataset::operator[](size_t index) const {
+    return (*sets[currentSetIndex].data)[index];
 }
 
-int Dataset::getValueAtIndex(size_t index) const {
-    return sets[index].value;
+int Dataset::getValue() const {
+    return sets[currentSetIndex].value;
 }
 
-void Dataset::setValueAtIndex(size_t index, int value) {
-    sets[index].value = value;
+void Dataset::setValue(int value) {
+    sets[currentSetIndex].value = value;
 }
 
-void Dataset::setVectorAtIndex(size_t index, std::unique_ptr<std::vector<double>> data) {
-    sets[index].data = std::move(data); 
+void Dataset::add(std::unique_ptr<std::vector<double>> data) {
+    sets.push_back({std::move(data), 0});
 }
 
-int Dataset::getCurrentIndex() const {
-    return currentSet;
-}
-
-void Dataset::setCurrentIndex(int value) {
-    currentSet = value;
+void Dataset::clear() {
+    currentSetIndex = -1;
+    sets.clear();
 }
 
 const Dataset &Dataset::operator++() {
-    ++currentSet;
+    ++currentSetIndex;
     return *this;
 }
 
 const Dataset &Dataset::operator--() {
-    --currentSet;
+    --currentSetIndex;
     return *this;
+}
+
+bool Dataset::empty() const {
+    return sets.empty();
+}
+
+size_t Dataset::currentSetSize() const {
+    return sets[currentSetIndex].data->size(); 
+}
+
+bool Dataset::isFirst() const {
+    return currentSetIndex == 0;
+}
+
+bool Dataset::isLast() const {
+    return currentSetIndex == int(sets.size() - 1);
 }

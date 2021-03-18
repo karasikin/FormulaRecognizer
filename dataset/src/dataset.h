@@ -17,22 +17,27 @@ class Dataset {
 
         Dataset();
 
-        std::vector<double> &operator[](size_t index) const;
+        double &operator[](size_t index) const;
 
-        int getValueAtIndex(size_t index) const;
-        void setValueAtIndex(size_t index, int value);
+        int getValue() const;
+        void setValue(int value);
 
-        void setVectorAtIndex(size_t index, std::unique_ptr<std::vector<double>> data);
+        void add(std::unique_ptr<std::vector<double>> data);
+        void clear();
 
-        int getCurrentIndex() const;
-        void setCurrentIndex(int value);
         const Dataset &operator++();
         const Dataset &operator--();
+
+        bool empty() const;
+        size_t currentSetSize() const;
+
+        bool isFirst() const;
+        bool isLast() const;
 
     private:
         
         std::vector<Data> sets; 
-        int currentSet;
+        int currentSetIndex;
 
 };
 

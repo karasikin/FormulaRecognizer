@@ -20,10 +20,7 @@
 DatasetBuilder::DatasetBuilder(QWidget *parent) 
     :QWidget(parent),
      COLOR_COUNT(256),
-     datasetFile(),
-     datasetItem(),
-     data(),
-     currentData(-1)
+     imageData()
 {
     datasetViewer = new ImageViewer;
     datasetLineEdit = new QLineEdit;
@@ -94,16 +91,9 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     QObject::connect(datasetLoadBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetLoad);
 }
 
-DatasetBuilder::~DatasetBuilder() {
-    if(datasetFile.is_open()) {
-        datasetFile.close();
-    }
-}
-
-
 void DatasetBuilder::onDataLineEdit() {
-    if(currentData >= 0) {
-        data[currentData].value = dataLineEdit->text().toInt();
+    if(!imageData.empty()) {
+        imageData.setValue(dataLineEdit->text().toInt());
     }
 }
 
@@ -114,20 +104,18 @@ void DatasetBuilder::onDataLoad() {
         return;
     }
 
-    data.clear();
+    imageData.clear();
     dataNextBtn->setEnabled(false);
     dataPrevBtn->setEnabled(false);
 
     extractData(fileName);
 
-    if(!data.empty()) {
-        currentData = 0;
-        showData(data[currentData]);
-        dataNextBtn->setEnabled(true);
-    } else {
-        currentData = -1;
+    if(!imageData.empty()) {
+        showData(++imageData);
+        if(!imageData.isLast()) {
+            dataNextBtn->setEnabled(true);
+        }
     }
-    
 }
 
 void DatasetBuilder::onDataAdd() {
@@ -135,25 +123,25 @@ void DatasetBuilder::onDataAdd() {
 }
 
 void DatasetBuilder::onDataNext() {
-    if(currentData >= 0) {
+    showData(++imageData);
+
+    if(!imageData.isFirst()) {
         dataPrevBtn->setEnabled(true);
     }
 
-    showData(data[++currentData]);
-
-    if(currentData == int(data.size() - 1)) {
+    if(imageData.isLast()) {
         dataNextBtn->setEnabled(false);
     }
 }
 
 void DatasetBuilder::onDataPrev() {
-    if(currentData <= int(data.size() - 1)) {
+    showData(--imageData);
+
+    if(!imageData.isLast()) {
         dataNextBtn->setEnabled(true);
     }
 
-    showData(data[--currentData]);
-
-    if(currentData == 0) {
+    if(imageData.isFirst()) {
         dataPrevBtn->setEnabled(false);
     }
 }
@@ -165,18 +153,18 @@ void DatasetBuilder::onDatasetLoad() {
         return;
     }
 
-    datasetFile.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
+    //datasetFile.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
 
 
 }
 
-void DatasetBuilder::showData(const Data &data) {
-    auto size = data.data->size();                      // Размер вестора 
+void DatasetBuilder::showData(const Dataset &data) {
+    auto size = data.currentSetSize();                  // Размер вестора 
     auto sideSize = (unsigned int)std::sqrt(size);      // Размер стороны изображения 
     auto img = std::make_unique<QImage>(sideSize, sideSize, QImage::Format_Grayscale16); 
 
     for(auto i = 0ul; i < size; ++i) {
-        auto color = (unsigned int)((*data.data)[i] * COLOR_COUNT);
+        auto color = (unsigned int)(data[i] * COLOR_COUNT);
         if(color == COLOR_COUNT) color--;
         img->setPixelColor({int(i % sideSize), int(i / sideSize)}, QColor(color, color, color));
     }
@@ -184,7 +172,7 @@ void DatasetBuilder::showData(const Data &data) {
     dataViewer->setImage(std::move(img));
     dataViewer->update(); 
 
-    dataLineEdit->setText(QString::number(data.value));
+    dataLineEdit->setText(QString::number(data.getValue()));
 }
 
 void DatasetBuilder::extractData(const std::string &fileName) {
@@ -205,7 +193,7 @@ void DatasetBuilder::extractData(const std::string &fileName) {
 
     auto func = [this](Segmenter::Formula *f) {
         if(f->isLeaf()) {
-            this->data.push_back({f->toVector(32), 0});   // Магическое число подумать!!!
+            this->imageData.add(f->toVector(32));   // Магическое число подумать!!!
         }
     };
 

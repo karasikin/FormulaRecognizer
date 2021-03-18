@@ -8,6 +8,8 @@
 
 #include <QWidget>
 
+#include "dataset.h"
+
 class QLabel;
 class QLineEdit;
 class QPushButton;
@@ -26,7 +28,6 @@ class DatasetBuilder : public QWidget {
         const unsigned int COLOR_COUNT; 
 
         DatasetBuilder(QWidget *parent = nullptr);
-        ~DatasetBuilder();
 
     private slots:
 
@@ -40,16 +41,14 @@ class DatasetBuilder : public QWidget {
 
     private:
 
-        void showData(const Data &data);
+        void showData(const Dataset &data);
         void extractData(const std::string &fileName);
 
     private:
 
-        std::fstream datasetFile;
-        Data datasetItem;
+        Dataset imageData;
+        //Dataset datasetData;
 
-        std::vector<Data> data;
-        int currentData;
 
         /* Элементы интерфейса */
         ImageViewer *datasetViewer;
