@@ -29,8 +29,16 @@ void Dataset::setValue(int value) {
     sets[currentSetIndex].value = value;
 }
 
+const std::vector<double> Dataset::getSet() const {
+    return *sets[currentSetIndex].data;
+}
+
 void Dataset::add(std::unique_ptr<std::vector<double>> data) {
     sets.push_back({std::move(data), 0});
+}
+
+void Dataset::add(const std::vector<double> &data, int value) {
+    sets.push_back({std::make_unique<std::vector<double>>(data), value});
 }
 
 void Dataset::clear() {

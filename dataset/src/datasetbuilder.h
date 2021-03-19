@@ -30,13 +30,16 @@ class DatasetBuilder : public QWidget {
 
     private slots:
 
-        void onDataLineEdit();
+        void onDataLineEdit(const QString &text);
         void onDataLoad();
         void onDataAdd();
         void onDataNext();
         void onDataPrev();
 
+        void onDatasetLineEdit(const QString &text);
         void onDatasetLoad();
+        void onDatasetDelete();
+        void onDatasetSave();
         void onDatasetNext();
         void onDatasetPrev();
 
@@ -55,6 +58,7 @@ class DatasetBuilder : public QWidget {
         QLineEdit *datasetLineEdit;
         QPushButton *datasetLoadBtn;
         QPushButton *datasetDeleteBtn;
+        QPushButton *datasetSaveBtn;
         QPushButton *datasetNextBtn;
         QPushButton *datasetPrevBtn;
 

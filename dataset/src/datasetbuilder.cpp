@@ -10,6 +10,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QFileDialog>
+#include <QIntValidator>
 
 #include "segmenter/formula.h"
 #include "imageviewer.h"
@@ -27,6 +28,7 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     datasetLineEdit = new QLineEdit;
     datasetLoadBtn = new QPushButton("Load");
     datasetDeleteBtn = new QPushButton("Delete");
+    datasetSaveBtn = new QPushButton("Save");
     datasetPrevBtn = new QPushButton("<");
     datasetNextBtn = new QPushButton(">");
 
@@ -38,8 +40,13 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     dataNextBtn = new QPushButton(">");
 
     datasetViewer->setMinimumWidth(100);  // ?
+    datasetLineEdit->setValidator(new QIntValidator(0, 1000));
+    datasetNextBtn->setEnabled(false);
+    datasetPrevBtn->setEnabled(false);
 
     dataViewer->setMinimumWidth(100); // ?
+    dataLineEdit->setValidator(new QIntValidator(0, 1000));
+    dataAddBtn->setEnabled(false);
     dataNextBtn->setEnabled(false);
     dataPrevBtn->setEnabled(false);
 
@@ -51,6 +58,7 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     datasetActionLayout->addWidget(datasetLineEdit);
     datasetActionLayout->addWidget(datasetLoadBtn);
     datasetActionLayout->addWidget(datasetDeleteBtn);
+    datasetActionLayout->addWidget(datasetSaveBtn);
 
     auto datasetTopLayout = new QHBoxLayout;
     datasetTopLayout->addWidget(datasetViewer);
@@ -89,14 +97,16 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     QObject::connect(dataNextBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataNext);
     QObject::connect(dataPrevBtn, &QPushButton::clicked, this, &DatasetBuilder::onDataPrev);
 
+    QObject::connect(datasetLineEdit, &QLineEdit::textChanged, this, &DatasetBuilder::onDatasetLineEdit);
     QObject::connect(datasetLoadBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetLoad);
+    QObject::connect(datasetSaveBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetSave);
     QObject::connect(datasetNextBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetNext);
     QObject::connect(datasetPrevBtn, &QPushButton::clicked, this, &DatasetBuilder::onDatasetPrev);
 }
 
-void DatasetBuilder::onDataLineEdit() {
+void DatasetBuilder::onDataLineEdit(const QString &text) {
     if(!imageData.empty()) {
-        imageData.setValue(dataLineEdit->text().toInt());
+        imageData.setValue(text.toInt());
     }
 }
 
@@ -118,13 +128,24 @@ void DatasetBuilder::onDataLoad() {
         if(!imageData.isLast()) {
             dataNextBtn->setEnabled(true);
         }
+        dataAddBtn->setEnabled(true);
     }
 }
 
 void DatasetBuilder::onDataAdd() {
-    /*imageData.writeToFile("file.dst");
-    imageData.readFromFile("file.dst");
-    showData(++imageData);*/
+    if(!imageData.empty()) {
+        auto isShowNeed{datasetData.empty()};
+
+        datasetData.add(imageData.getSet(), imageData.getValue());
+
+        if(isShowNeed) {
+            showData(++datasetData, datasetViewer, datasetLineEdit);
+        }
+
+        if(!datasetData.isLast()) {
+            datasetNextBtn->setEnabled(true);
+        }
+    }
 }
 
 void DatasetBuilder::onDataNext() {
@@ -151,6 +172,12 @@ void DatasetBuilder::onDataPrev() {
     }
 }
 
+void DatasetBuilder::onDatasetLineEdit(const QString &text) {
+    if(!datasetData.empty()) {
+        datasetData.setValue(text.toInt());
+    }
+}
+
 void DatasetBuilder::onDatasetLoad() {
     auto fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Datasets (*.dst)").toStdString(); 
 
@@ -169,6 +196,20 @@ void DatasetBuilder::onDatasetLoad() {
             datasetNextBtn->setEnabled(true);
         }
     }
+}
+
+void DatasetBuilder::onDatasetDelete() {
+    // NotImplemented
+}
+
+void DatasetBuilder::onDatasetSave() {
+    auto fileName = QFileDialog::getSaveFileName(this, "SaveFile", "./test.dst", "Dataset (*.dst)").toStdString();
+
+    if(fileName.empty()) {
+        return;
+    }
+
+    datasetData.writeToFile(fileName);
 }
 
 void DatasetBuilder::onDatasetNext() {

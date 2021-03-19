@@ -24,7 +24,10 @@ class Dataset {
         int getValue() const;
         void setValue(int value);
 
+        const std::vector<double> getSet() const;
+
         void add(std::unique_ptr<std::vector<double>> data);
+        void add(const std::vector<double> &data, int value);
         void clear();
 
         const Dataset &operator++();
