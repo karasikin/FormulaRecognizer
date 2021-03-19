@@ -7,7 +7,7 @@
 
 #include <QWidget>
 
-#include "dataset.h"
+#include "dataset/dataset.h"
 
 class QLabel;
 class QLineEdit;
@@ -25,6 +25,8 @@ class DatasetBuilder : public QWidget {
     public:
 
         const unsigned int COLOR_COUNT; 
+        const int VIEWER_SIZE;
+        const int SEGMENT_SIDE_SIZE;
 
         DatasetBuilder(QWidget *parent = nullptr);
 
@@ -45,13 +47,13 @@ class DatasetBuilder : public QWidget {
 
     private:
 
-        void showData(const Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit);
+        void showData(const Dataset::Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit);
         void extractData(const std::string &fileName);
 
     private:
 
-        Dataset imageData;
-        Dataset datasetData;
+        Dataset::Dataset imageData;
+        Dataset::Dataset datasetData;
 
         /* Элементы интерфейса */
         ImageViewer *datasetViewer;

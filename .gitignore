@@ -1,5 +1,5 @@
 build
 images
 src/vim.session
-dataset/build
-dataset/src/vim.session
+dataset_builder/build
+dataset_builder/src/vim.session

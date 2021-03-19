@@ -21,6 +21,8 @@
 DatasetBuilder::DatasetBuilder(QWidget *parent) 
     :QWidget(parent),
      COLOR_COUNT(256),
+     VIEWER_SIZE(200),
+     SEGMENT_SIDE_SIZE(32),
      imageData(),
      datasetData()
 {
@@ -39,12 +41,12 @@ DatasetBuilder::DatasetBuilder(QWidget *parent)
     dataPrevBtn = new QPushButton("<");
     dataNextBtn = new QPushButton(">");
 
-    datasetViewer->setMinimumWidth(100);  // ?
+    datasetViewer->setMinimumSize(VIEWER_SIZE, VIEWER_SIZE);
     datasetLineEdit->setValidator(new QIntValidator(0, 1000));
     datasetNextBtn->setEnabled(false);
     datasetPrevBtn->setEnabled(false);
 
-    dataViewer->setMinimumWidth(100); // ?
+    dataViewer->setMinimumSize(VIEWER_SIZE, VIEWER_SIZE);
     dataLineEdit->setValidator(new QIntValidator(0, 1000));
     dataAddBtn->setEnabled(false);
     dataNextBtn->setEnabled(false);
@@ -236,8 +238,8 @@ void DatasetBuilder::onDatasetPrev() {
     }
 }
 
-void DatasetBuilder::showData(const Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit) {
-    auto size = data.currentSetSize();                  // Размер вестора 
+void DatasetBuilder::showData(const Dataset::Dataset &data, ImageViewer *imgViewer, QLineEdit *lineEdit) {
+    auto size = data.currentSetSize();                  // Размер вектора 
     auto sideSize = (unsigned int)std::sqrt(size);      // Размер стороны изображения 
     auto img = std::make_unique<QImage>(sideSize, sideSize, QImage::Format_Grayscale16); 
 
@@ -271,7 +273,7 @@ void DatasetBuilder::extractData(const std::string &fileName) {
 
     auto func = [this](Segmenter::Formula *f) {
         if(f->isLeaf()) {
-            this->imageData.add(f->toVector(32));   // Магическое число подумать!!!
+            this->imageData.add(f->toVector(SEGMENT_SIDE_SIZE));
         }
     };
 
