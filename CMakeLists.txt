@@ -9,6 +9,7 @@ set(SRC_LIST
     src/recognizer.cpp
     src/segmenter/formula.cpp
     src/segmenter/rect.cpp
+    src/neural_network/matrix.cpp
 )
 
 set(HEADER_DIRECTORY include)
